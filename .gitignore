@@ -1,0 +1,16 @@
+# Local clones of the data/target repos (never committed)
+work/
+
+# Build output
+bin/
+obj/
+
+# Logs & secrets
+debug.log
+*.log
+appsettings.local.json
+*.user
+
+# IDE
+.vs/
+.idea/
