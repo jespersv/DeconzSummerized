@@ -72,7 +72,7 @@ var candidates = state.LastProcessedDate is { } last
 Log($"Found {allFiles.Count} day file(s); processing {candidates.Count}.");
 
 // 5. Parse + aggregate the candidate days.
-var readings = candidates.SelectMany(f => CsvSensorParser.ParseFile(f.Path)).ToList();
+var readings = candidates.SelectMany(f => CsvSensorParser.ParseFile(f.Path, config.MaxStaleness)).ToList();
 var recomputed = DailyAggregator.Aggregate(readings);
 var reprocessedDates = candidates.Select(f => f.Date).ToHashSet();
 

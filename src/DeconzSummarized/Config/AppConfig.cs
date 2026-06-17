@@ -33,6 +33,9 @@ public sealed class AppConfig
 
     public bool PushChanges { get; set; } = true;
 
+    /// <summary>Readings whose LastUpdated lags the snapshot by more than this are dropped. 0 disables.</summary>
+    public double StaleReadingHours { get; set; } = 24;
+
     // ---- Resolved helpers ------------------------------------------------
 
     public string EffectiveDataUser =>
@@ -45,6 +48,9 @@ public sealed class AppConfig
     public string SiteClonePath => Path.Combine(WorkDir, SiteDirName);
 
     public bool OfflineMode => !string.IsNullOrWhiteSpace(UseLocalDataDir);
+
+    public TimeSpan? MaxStaleness =>
+        StaleReadingHours > 0 ? TimeSpan.FromHours(StaleReadingHours) : null;
 
     /// <summary>Builds configuration from files + environment and binds an <see cref="AppConfig"/>.</summary>
     public static AppConfig Load(string basePath)

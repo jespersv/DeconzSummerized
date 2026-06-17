@@ -25,8 +25,13 @@ public static partial class CsvSensorParser
         TrimOptions = TrimOptions.Trim,
     };
 
-    /// <summary>Parses one CSV file, skipping malformed rows and non-weather (Daylight) sensors.</summary>
-    public static IEnumerable<SensorReading> ParseFile(string path)
+    /// <summary>
+    /// Parses one CSV file, skipping malformed rows and non-weather (Daylight) sensors.
+    /// When <paramref name="maxStaleness"/> is set, readings whose <c>LastUpdated</c> lags the
+    /// snapshot time by more than that span are dropped (e.g. a sensor with a dead battery that
+    /// keeps reporting its last frozen value).
+    /// </summary>
+    public static IEnumerable<SensorReading> ParseFile(string path, TimeSpan? maxStaleness = null)
     {
         using var reader = new StreamReader(path);
         using var csv = new CsvReader(reader, CsvConfig);
@@ -36,13 +41,13 @@ public static partial class CsvSensorParser
 
         while (csv.Read())
         {
-            SensorReading? reading = TryParseRow(csv);
+            SensorReading? reading = TryParseRow(csv, maxStaleness);
             if (reading is not null)
                 yield return reading;
         }
     }
 
-    private static SensorReading? TryParseRow(CsvReader csv)
+    private static SensorReading? TryParseRow(CsvReader csv, TimeSpan? maxStaleness)
     {
         try
         {
@@ -76,6 +81,15 @@ public static partial class CsvSensorParser
             if (timestamp is null)
                 return null;
 
+            // Drop stale readings: a sensor that stopped reporting (e.g. flat battery) keeps
+            // appearing in snapshots with an old LastUpdated and a frozen value.
+            if (maxStaleness is { } limit)
+            {
+                DateTime? lastUpdated = ParseTimestamp(csv.GetField("LastUpdated"));
+                if (lastUpdated is { } lu && timestamp.Value - lu > limit)
+                    return null;
+            }
+
             int? battery = TryParseInt(csv.GetField("Battery"));
 
             return new SensorReading(room.Trim(), metric, rawValue, timestamp.Value, battery);
@@ -105,6 +119,18 @@ public static partial class CsvSensorParser
         }
 
         return null;
+    }
+
+    /// <summary>Parses a deCONZ ISO timestamp like "2026-06-16T23:11:24.022" as UTC.</summary>
+    private static DateTime? ParseTimestamp(string? s)
+    {
+        if (string.IsNullOrWhiteSpace(s))
+            return null;
+
+        return DateTime.TryParse(s, CultureInfo.InvariantCulture,
+                DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal, out var ts)
+            ? ts
+            : null;
     }
 
     private static double ParseDouble(string? s) =>
