@@ -58,7 +58,14 @@ var state = store.LoadState();
 
 // 4. Determine which day files to (re)process: everything on/after the last processed day
 //    (the latest day is reprocessed because its file grows during the day).
-var allFiles = EnumerateDayFiles(dataDir).ToList();
+var csvDir = config.ResolveCsvDir(dataDir);
+if (!Directory.Exists(csvDir))
+{
+    Log($"CSV directory '{csvDir}' not found. Nothing to do.");
+    return 0;
+}
+
+var allFiles = EnumerateDayFiles(csvDir).ToList();
 if (allFiles.Count == 0)
 {
     Log("No data CSV files found. Nothing to do.");

@@ -24,6 +24,9 @@ public sealed class AppConfig
     public string DataDirName { get; set; } = "data";
     public string SiteDirName { get; set; } = "site";
 
+    /// <summary>Subfolder within the data repo that holds the day CSVs. Empty = repo root.</summary>
+    public string DataSubDir { get; set; } = "hourly";
+
     public string TargetBranch { get; set; } = "main";
     public string CommitAuthorName { get; set; } = "DeconzSummarized Bot";
     public string CommitAuthorEmail { get; set; } = "bot@users.noreply.github.com";
@@ -46,6 +49,10 @@ public sealed class AppConfig
 
     public string DataClonePath => Path.Combine(WorkDir, DataDirName);
     public string SiteClonePath => Path.Combine(WorkDir, SiteDirName);
+
+    /// <summary>Applies <see cref="DataSubDir"/> to the resolved data root to locate the CSVs.</summary>
+    public string ResolveCsvDir(string dataRoot) =>
+        string.IsNullOrWhiteSpace(DataSubDir) ? dataRoot : Path.Combine(dataRoot, DataSubDir);
 
     public bool OfflineMode => !string.IsNullOrWhiteSpace(UseLocalDataDir);
 

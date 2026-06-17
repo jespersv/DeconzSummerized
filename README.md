@@ -19,7 +19,8 @@ each run only reprocesses the latest day onward.
 
 ## Data format
 
-The data repo holds one semicolon-delimited CSV per day, named `YYYYMMDD.csv`.
+The data repo holds one semicolon-delimited CSV per day, named `YYYYMMDD.csv`,
+inside a `hourly/` subfolder (configurable via `DataSubDir`).
 Each row is one sensor reading from an hourly snapshot:
 
 - Snapshot time comes from `FileName` (`sensorfetch_YYYYMMDDHHMM.json`).
@@ -29,7 +30,8 @@ Each row is one sensor reading from an hourly snapshot:
   is hPa; `Battery` is 0–100 %.
 - The Philips `Daylight` sensor is ignored.
 
-Sample files are in [`examples_data/`](examples_data) for local testing.
+Sample files are in [`examples_data/hourly/`](examples_data/hourly) for local testing
+(mirroring the real repo layout).
 
 ## Configuration
 
@@ -43,6 +45,8 @@ gitignored `appsettings.local.json`.
 | `DataRepoUrl` / `TargetRepoUrl` | The two GitHub repos. |
 | `GitHubUser` | Default username for both repos (override per-repo if needed). |
 | `WorkDir` | Local working dir for the clones (gitignored, default `work`). |
+| `DataSubDir` | Subfolder in the data repo holding the CSVs (default `hourly`; empty = root). |
+| `StaleReadingHours` | Drop readings whose `LastUpdated` lags the snapshot by more than this (default `24`, `0` disables). |
 | `TargetBranch` | Branch GitHub Pages serves from (default `main`). |
 | `UseLocalDataDir` | If set, read CSVs from this path and skip cloning the data repo. |
 | `PushChanges` | Set `false` to generate the site locally without pushing. |
@@ -93,5 +97,5 @@ src/DeconzSummarized/
   Render/PageRenderer.cs     # copies page assets into the site dir
   templates/                 # index.html, app.js, styles.css
   appsettings.json
-examples_data/               # sample CSVs for offline testing
+examples_data/hourly/        # sample CSVs for offline testing
 ```
