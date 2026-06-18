@@ -79,6 +79,16 @@ python -m http.server 8000 --directory work/site   # open http://localhost:8000
 
 Schedule the normal run however you like (e.g. Windows Task Scheduler).
 
+## Testing
+
+```powershell
+dotnet test        # runs the NUnit suite in tests/DeconzSummarized.Tests
+```
+
+The tests cover the pure logic (CSV parsing/scaling, staleness & Daylight
+filtering, daily aggregation, summary merge, config resolution) plus an offline
+end-to-end run of `SummaryPipeline` against temp fixtures — no git or network.
+
 ## GitHub Pages setup (one time)
 
 In the `home-temp` repo: **Settings → Pages → Build and deployment → Deploy from a
@@ -89,13 +99,15 @@ branch**, select the `main` branch and `/ (root)` folder. The dashboard will be 
 
 ```
 src/DeconzSummarized/
-  Program.cs                 # pipeline orchestration
-  Config/AppConfig.cs        # settings + env binding
-  Git/RepoSync.cs            # LibGit2Sharp clone/pull + commit/push
-  Parsing/                   # SensorReading model + CSV parser
-  Summarize/                 # daily aggregation + summary/state store
-  Render/PageRenderer.cs     # copies page assets into the site dir
-  templates/                 # index.html, app.js, styles.css
+  Program.cs                      # thin entry point: load+validate config, run the pipeline
+  Application/SummaryPipeline.cs  # end-to-end orchestration (testable)
+  Config/AppConfig.cs             # settings + env binding
+  Git/RepoSync.cs                 # LibGit2Sharp clone/pull + commit/push
+  Parsing/                        # SensorReading model + CSV parser
+  Summarize/                      # daily aggregation + summary/state store
+  Render/PageRenderer.cs          # copies page assets into the site dir
+  templates/                      # index.html, app.js, styles.css
   appsettings.json
-examples_data/hourly/        # sample CSVs for offline testing
+tests/DeconzSummarized.Tests/     # NUnit unit + pipeline integration tests
+examples_data/hourly/             # sample CSVs for offline testing
 ```
